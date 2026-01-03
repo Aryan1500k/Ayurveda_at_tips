@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../app_theme.dart'; // Ensure this path is correct
+//import 'app_theme.dart'; // Ensure this path is correct
 
 class ProductScreen extends StatelessWidget {
   const ProductScreen({super.key});
