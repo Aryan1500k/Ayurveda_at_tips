@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends StatefulWidget {
   final String finalDosha;
   final String description;
   final int vata;
@@ -17,50 +19,58 @@ class QuizResultScreen extends StatelessWidget {
   });
 
   @override
+  State<QuizResultScreen> createState() => _QuizResultScreenState();
+}
+
+class _QuizResultScreenState extends State<QuizResultScreen> {
+  @override
+  void initState() {
+    super.initState();
+    _saveResultsToFirebase();
+  }
+
+  Future<void> _saveResultsToFirebase() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'dominantDosha': widget.finalDosha,
+          'scores': {
+            'vata': widget.vata,
+            'pitta': widget.pitta,
+            'kapha': widget.kapha,
+          },
+          'lastQuizDate': FieldValue.serverTimestamp(),
+        }, SetOptions(merge: true));
+      } catch (e) {
+        debugPrint("Firestore Error: $e");
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F1E9),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+          padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              const Text(
-                "ANALYSIS COMPLETE",
-                style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold, color: Colors.brown),
-              ),
+              const Text("ANALYSIS COMPLETE", style: TextStyle(letterSpacing: 2, fontWeight: FontWeight.bold, color: Colors.brown)),
               const SizedBox(height: 20),
-
-              // Dosha Title
-              Text(
-                finalDosha,
-                style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Color(0xFF1B4332)),
-              ),
-              const SizedBox(height: 10),
-
-              // Description Card
+              Text(widget.finalDosha, style: const TextStyle(fontSize: 48, fontWeight: FontWeight.bold, color: Color(0xFF1B4332))),
+              const SizedBox(height: 20),
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  description,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 16, height: 1.5, color: Colors.black54),
-                ),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                child: Text(widget.description, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, height: 1.5, color: Colors.black54)),
               ),
               const SizedBox(height: 30),
-
-              // Score Breakdown Table
-              _buildScoreRow("Vata", vata, const Color(0xFF8ECAE6)),
-              _buildScoreRow("Pitta", pitta, const Color(0xFFFB8500)),
-              _buildScoreRow("Kapha", kapha, const Color(0xFF2D6A4F)),
-
+              _buildScoreRow("Vata", widget.vata, const Color(0xFF8ECAE6)),
+              _buildScoreRow("Pitta", widget.pitta, const Color(0xFFFB8500)),
+              _buildScoreRow("Kapha", widget.kapha, const Color(0xFF2D6A4F)),
               const Spacer(),
-
-              // Action Button
               ElevatedButton(
                 onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
                 style: ElevatedButton.styleFrom(

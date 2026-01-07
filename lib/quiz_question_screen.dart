@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/quiz_model.dart'; // Import the model above
+import 'models/quiz_model.dart';
+import 'quiz_result_screen.dart';
 
 class QuizQuestionScreen extends StatefulWidget {
   const QuizQuestionScreen({super.key});
@@ -10,17 +11,56 @@ class QuizQuestionScreen extends StatefulWidget {
 }
 
 class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
-  int _currentIndex = 0; // Tracks the current question (0 to 29)
+  int _currentIndex = 0;
+  int _vataScore = 0;
+  int _pittaScore = 0;
+  int _kaphaScore = 0;
 
-  void _nextQuestion() {
+  void _answerQuestion(int optionIndex) {
+    // 1. Logic: Index 0=Vata, 1=Pitta, 2=Kapha
+    if (optionIndex == 0) _vataScore++;
+    else if (optionIndex == 1) _pittaScore++;
+    else if (optionIndex == 2) _kaphaScore++;
+
+    // 2. Navigation Logic
     if (_currentIndex < doshaQuestions.length - 1) {
       setState(() {
         _currentIndex++;
       });
     } else {
-      // Logic for when the quiz ends (e.g., show results)
-      print("Quiz Completed!");
+      _navigateToResults();
     }
+  }
+
+  void _navigateToResults() {
+    String finalDosha = "";
+    String description = "";
+
+    // Calculation for final winner
+    if (_vataScore >= _pittaScore && _vataScore >= _kaphaScore) {
+      finalDosha = "Vata";
+      description = "Your personality is characterized by space and air. You are creative, energetic, and thrive on change.";
+    } else if (_pittaScore >= _vataScore && _pittaScore >= _kaphaScore) {
+      finalDosha = "Pitta";
+      description = "Your personality is characterized by fire and water. You are sharp, determined, and highly organized.";
+    } else {
+      finalDosha = "Kapha";
+      description = "Your personality is characterized by earth and water. You are calm, loving, and provide steady support to others.";
+    }
+
+    // Move to Result Screen
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QuizResultScreen(
+          finalDosha: finalDosha,
+          description: description,
+          vata: _vataScore,
+          pitta: _pittaScore,
+          kapha: _kaphaScore,
+        ),
+      ),
+    );
   }
 
   @override
@@ -33,54 +73,37 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 18),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text("AYURVEDA AT TIPS", style: TextStyle(letterSpacing: 2, fontSize: 14, fontWeight: FontWeight.bold)),
+        title: const Text("AYURVEDA AT TIPS", style: TextStyle(letterSpacing: 2, fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black)),
         centerTitle: true,
-        actions: [
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 20),
-              child: Text("${_currentIndex + 1} of ${doshaQuestions.length}"),
-            ),
-          )
-        ],
       ),
       body: Column(
         children: [
-          // Dynamic Progress Bar
           LinearProgressIndicator(
             value: progressValue,
             backgroundColor: const Color(0xFFE8F3EE),
             color: const Color(0xFF009460),
-            minHeight: 3,
+            minHeight: 4,
           ),
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(30),
               child: Column(
                 children: [
-                  const SizedBox(height: 10),
-                  // Dynamic Category Tag
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     decoration: BoxDecoration(color: const Color(0xFFE8F3EE), borderRadius: BorderRadius.circular(20)),
                     child: Text(currentQuestion.category, style: const TextStyle(color: Color(0xFF009460), fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(height: 40),
-                  // Dynamic Question Text
                   Text(
                     currentQuestion.questionText,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.instrumentSans(fontSize: 24, fontWeight: FontWeight.bold, height: 1.2),
                   ),
                   const SizedBox(height: 50),
-                  // Generate Options dynamically
-                  ...currentQuestion.options.map((optionText) => GestureDetector(
-                    onTap: _nextQuestion, // Move to next question on tap
-                    child: _buildOptionCard(optionText),
+                  ...currentQuestion.options.asMap().entries.map((entry) => GestureDetector(
+                    onTap: () => _answerQuestion(entry.key),
+                    child: _buildOptionCard(entry.value),
                   )),
                 ],
               ),
