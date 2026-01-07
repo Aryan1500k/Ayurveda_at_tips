@@ -1,4 +1,7 @@
+import 'package:ayurveda_app/quiz_result_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 // --- 1. DATA MODEL ---
 class QuizQuestion {
@@ -52,53 +55,45 @@ class _QuizScreenState extends State<QuizScreen> {
     });
   }
 
-  void _showResult() {
-    int totalQuestions = doshaQuestions.length;
-
-    // Calculate Percentages
-    double vataPercent = (_vataScore / totalQuestions) * 100;
-    double pittaPercent = (_pittaScore / totalQuestions) * 100;
-    double kaphaPercent = (_kaphaScore / totalQuestions) * 100;
-
-    // Determine Dominant Dosha
+  Future<void> _showResult() async { // Change to Future<void> and add async
     String finalDosha = "";
-    if (_vataScore >= _pittaScore && _vataScore >= _kaphaScore) finalDosha = "Vata";
-    else if (_pittaScore >= _vataScore && _pittaScore >= _kaphaScore) finalDosha = "Pitta";
-    else finalDosha = "Kapha";
+    String description = "";
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Your Ayurvedic Profile", textAlign: TextAlign.center),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.spa, color: Color(0xFF009460), size: 50),
-            const SizedBox(height: 10),
-            Text("Dominant: $finalDosha",
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF009460))),
-            const Divider(height: 30),
-            // Show Percentage Breakdown
-            _buildResultRow("Vata", vataPercent, Colors.lightBlue),
-            _buildResultRow("Pitta", pittaPercent, Colors.orange),
-            _buildResultRow("Kapha", kaphaPercent, Colors.brown),
-          ],
-        ),
-        actions: [
-          Center(
-            child: TextButton(
-              onPressed: () {
-                Navigator.pop(ctx);
-                Navigator.pop(context); // Go back home
-              },
-              child: const Text("Finish", style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+    // ... (Your existing calculation logic for finalDosha and description) ...
+
+    // --- SAVE TO FIREBASE LOGIC ---
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+          'dominantDosha': finalDosha,
+          'doshaScores': {
+            'vata': _vataScore,
+            'pitta': _pittaScore,
+            'kapha': _kaphaScore,
+          },
+          'lastAssessmentDate': DateTime.now(),
+        }, SetOptions(merge: true)); // merge: true prevents overwriting other user data
+      } catch (e) {
+        print("Error saving quiz: $e");
+      }
+    }
+
+    // Navigate to the result screen
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QuizResultScreen(
+            finalDosha: finalDosha,
+            description: description,
+            vata: _vataScore,
+            pitta: _pittaScore,
+            kapha: _kaphaScore,
           ),
-        ],
-      ),
-    );
+        ),
+      );
+    }
   }
 
   Widget _buildResultRow(String label, double percent, Color color) {
