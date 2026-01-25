@@ -1,220 +1,202 @@
 import 'package:flutter/material.dart';
 
-class ExpertScreen extends StatelessWidget {
+class ExpertScreen extends StatefulWidget {
   const ExpertScreen({super.key});
+
+  @override
+  State<ExpertScreen> createState() => _ExpertScreenState();
+}
+
+class _ExpertScreenState extends State<ExpertScreen> {
+  // Function to show the Bottom Sheet for Chat or Call
+  void _showFormSheet(bool isChat) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.75,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+        ),
+        padding: const EdgeInsets.all(25),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(10)))),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Icon(isChat ? Icons.chat_bubble_outline : Icons.phone_outlined, color: const Color(0xFF8B6B23)),
+                  const SizedBox(width: 10),
+                  Text(isChat ? "Start a chat" : "Request a Call", style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 25),
+              _buildTextField("Name"),
+              _buildTextField("Phone Number", keyboardType: TextInputType.phone),
+              _buildTextField("Email (optional)", keyboardType: TextInputType.emailAddress),
+              _buildTextField("Briefly describe your concern", maxLines: 3),
+              const SizedBox(height: 30),
+              Row(
+                children: [
+                  Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(context), style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))), child: const Text("Back", style: TextStyle(color: Colors.black)))),
+                  const SizedBox(width: 15),
+                  Expanded(child: ElevatedButton(onPressed: () => Navigator.pop(context), style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFB4906C), padding: const EdgeInsets.symmetric(vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))), child: const Text("Submit", style: TextStyle(color: Colors.white)))),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // The background is naturally light pistachio from your main theme
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 18, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        // FIXED: Using local asset instead of fake URL
-        title: Image.asset('assets/logo.png', height: 60,width: 250, errorBuilder: (context, error, stackTrace) {
-          return const Text("AYURVEDA", style: TextStyle(color: Colors.black, letterSpacing: 2));
-        }),
-        centerTitle: true,
-      ),
+      backgroundColor: const Color(0xFFF8F9F4),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Connect with an Expert",
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            const Text(
-              "Get personalized guidance from certified Ayurvedic practitioners with decades of experience.",
-              style: TextStyle(color: Colors.black54, fontSize: 14),
-            ),
+            const SizedBox(height: 60),
+            const Text("Expert", style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            const Text("Connect with an Expert", style: TextStyle(fontFamily: 'Trajan Pro', fontSize: 22)),
             const SizedBox(height: 30),
 
-            // Benefit Icons Row
+            // --- TOP CARDS (Chat & Call) ---
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                children: [
+                  _buildActionCard("Chat with\nExpert", "Get quick answers via messaging", Icons.chat_bubble_outline, const Color(0xFFE8F5E9), Colors.green, () => _showFormSheet(true)),
+                  const SizedBox(width: 15),
+                  _buildActionCard("Book a\nCall", "Schedule a consultation call", Icons.phone_outlined, const Color(0xFFFFF3E0), Colors.orange, () => _showFormSheet(false)),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 30),
+            const Text("—  Get personalized guidance from  —\ncertified Ayurvedic practitioners.", textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 13)),
+            const SizedBox(height: 20),
             const Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _BenefitIcon(icon: Icons.verified_outlined, label: "Certified\nPractitioners"),
-                _BenefitIcon(icon: Icons.access_time, label: "Quick\nResponse"),
-                _BenefitIcon(icon: Icons.shield_outlined, label: "Confidential"),
+                _TrustIcon(Icons.verified_outlined, "Certified"),
+                SizedBox(width: 20),
+                _TrustIcon(Icons.history_toggle_off, "Quick Response"),
+                SizedBox(width: 20),
+                _TrustIcon(Icons.shield_outlined, "Confidential"),
               ],
             ),
-            const SizedBox(height: 30),
 
-            // Chat and Call Cards
-            const _ActionCard(
-              icon: Icons.chat_bubble_outline,
-              title: "Chat with Expert",
-              subtitle: "Get quick answers via messaging",
-              color: Color(0xFFE8F3EE),
-              iconColor: Color(0xFF009460),
+            const SizedBox(height: 40),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Align(alignment: Alignment.centerLeft, child: Text("Our Practitioners", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
             ),
-            const SizedBox(height: 12),
-            const _ActionCard(
-              icon: Icons.phone_outlined,
-              title: "Book a Call",
-              subtitle: "Schedule a conversation call",
-              color: Color(0xFFF5F0E6),
-              iconColor: Color(0xFFC4A484),
-            ),
-            const SizedBox(height: 30),
 
-            const Text("Our Practitioners",
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 20),
+            // --- PRACTITIONERS LIST ---
+            _buildPractitionerCard("Dr. Anjali Sharma", "Senior Ayurvedic Physician", "15+ Years", "Digestive Health & Detox", "A", true),
+            _buildPractitionerCard("Vaidya Rajesh Patel", "Traditional Ayurveda Practitioner", "20+ Years", "Stress management & Sleep", "V", true),
+            _buildPractitionerCard("Dr. Priya Menon", "Ayurvedic Wellness Coach", "10+ Years", "Women's Health & Hormones", "P", false),
 
-            // Practitioner Cards (Matching your Image_390485.png)
-            const _PractitionerCard(
-              name: "Dr. Anjali Sharma",
-              role: "Senior Ayurvedic Physician",
-              experience: "15+ years",
-              specialty: "Digestive Health & Detox",
-              status: "Available",
-              qualifications: ["BAMS", "MD Ayurveda"],
-            ),
-            const _PractitionerCard(
-              name: "Vaidya Rajesh Patel",
-              role: "Traditional Ayurveda Practitioner",
-              experience: "20+ years",
-              specialty: "Stress Management & Sleep",
-              status: "Available",
-              qualifications: ["BAMS", "Panchakarma specialist"],
-            ),
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
   }
-}
 
-// --- SUB-WIDGETS (Required for the screen to work) ---
-
-class _BenefitIcon extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  const _BenefitIcon({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        CircleAvatar(
-          backgroundColor: const Color(0xFFE8F3EE),
-          child: Icon(icon, color: const Color(0xFF009460), size: 20),
-        ),
-        const SizedBox(height: 8),
-        Text(label, textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w500)),
-      ],
-    );
-  }
-}
-
-class _ActionCard extends StatelessWidget {
-  final IconData icon;
-  final String title, subtitle;
-  final Color color, iconColor;
-  const _ActionCard({required this.icon, required this.title, required this.subtitle, required this.color, required this.iconColor});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(15)),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 15),
-          Column(
+  Widget _buildActionCard(String title, String sub, IconData icon, Color bg, Color iconColor, VoidCallback onTap) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)]),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              Text(subtitle, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+              Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)), child: Icon(icon, color: iconColor)),
+              const SizedBox(height: 15),
+              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text(sub, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPractitionerCard(String name, String role, String exp, String spec, String initial, bool isAvailable) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)]),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              CircleAvatar(radius: 30, backgroundColor: const Color(0xFFFBE9E7), child: Text(initial, style: const TextStyle(color: Color(0xFF8B6B23), fontSize: 20, fontWeight: FontWeight.bold))),
+              const SizedBox(width: 15),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text(role, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(color: isAvailable ? const Color(0xFFE8F5E9) : const Color(0xFFFFEBEE), borderRadius: BorderRadius.circular(10)),
+                child: Text(isAvailable ? "Available" : "Busy", style: TextStyle(color: isAvailable ? Colors.green : Colors.red, fontSize: 10, fontWeight: FontWeight.bold)),
+              )
+            ],
+          ),
+          const SizedBox(height: 15),
+          Row(
+            children: [
+              _Tag(exp),
+              const SizedBox(width: 10),
+              _Tag(spec),
+            ],
+          ),
+          const SizedBox(height: 15),
+          const Row(
+            children: [
+              Icon(Icons.check, size: 16, color: Color(0xFF8B6B23)), SizedBox(width: 5), Text("BAMS", style: TextStyle(fontSize: 12)),
+              SizedBox(width: 20),
+              Icon(Icons.check, size: 16, color: Color(0xFF8B6B23)), SizedBox(width: 5), Text("Expert Practitioner", style: TextStyle(fontSize: 12)),
             ],
           )
         ],
       ),
     );
   }
-}
 
-class _PractitionerCard extends StatelessWidget {
-  final String name, role, experience, specialty, status;
-  final List<String> qualifications;
-
-  const _PractitionerCard({
-    required this.name, required this.role, required this.experience,
-    required this.specialty, required this.status, required this.qualifications,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
+  Widget _buildTextField(String label, {TextInputType? keyboardType, int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 15),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Color(0xFFE8F3EE),
-                  child: Text("D", style: TextStyle(color: Color(0xFF009460), fontSize: 24))
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        _StatusChip(status: status),
-                      ],
-                    ),
-                    Text(role, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              _Tag(text: experience),
-              const SizedBox(width: 8),
-              Expanded(child: _Tag(text: specialty)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: qualifications.map((q) => Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: Row(children: [
-                const Icon(Icons.check, size: 14, color: Color(0xFF009460)),
-                const SizedBox(width: 4),
-                Text(q, style: const TextStyle(fontSize: 12, color: Color(0xFF009460))),
-              ]),
-            )).toList(),
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          const SizedBox(height: 8),
+          TextField(
+            keyboardType: keyboardType,
+            maxLines: maxLines,
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: const Color(0xFFF8F9F4),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            ),
           ),
         ],
       ),
@@ -222,34 +204,20 @@ class _PractitionerCard extends StatelessWidget {
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  final String status;
-  const _StatusChip({required this.status});
-
+class _Tag extends StatelessWidget {
+  final String label;
+  const _Tag(this.label);
   @override
   Widget build(BuildContext context) {
-    bool isAvailable = status == "Available";
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: isAvailable ? const Color(0xFFE8F3EE) : Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(status, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isAvailable ? Colors.green : Colors.grey)),
-    );
+    return Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: const Color(0xFFF8F9F4), borderRadius: BorderRadius.circular(10)), child: Text(label, style: const TextStyle(fontSize: 11, color: Colors.grey)));
   }
 }
 
-class _Tag extends StatelessWidget {
-  final String text;
-  const _Tag({required this.text});
-
+class _TrustIcon extends StatelessWidget {
+  final IconData icon; final String label;
+  const _TrustIcon(this.icon, this.label);
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: Colors.grey.shade700, borderRadius: BorderRadius.circular(6)),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 10)),
-    );
+    return Column(children: [Icon(icon, size: 20, color: Colors.grey), const SizedBox(height: 5), Text(label, style: const TextStyle(fontSize: 9, color: Colors.grey))]);
   }
 }

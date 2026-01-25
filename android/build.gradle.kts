@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // This is the missing link for your error
+        classpath("com.android.tools:desugar_jdk_libs:2.1.4")
+        classpath("com.google.gms:google-services:4.3.15")
+    }
+}
 allprojects {
     repositories {
         google()

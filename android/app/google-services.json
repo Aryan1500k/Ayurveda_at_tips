@@ -12,7 +12,20 @@
           "package_name": "com.example.ayurveda_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "819161511250-via45fb653q8dhig2s2kvcht885g1n4d.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ayurveda_app",
+            "certificate_hash": "286fd3154fadb4110eb3b00a6e810a3de7b400b3"
+          }
+        },
+        {
+          "client_id": "819161511250-3k9d7101fk7m9vhj2qh9m8u6b5vluagb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDmQeMos5BOE6-gTnuSSJkd0ZSWaLsUNpo"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "819161511250-3k9d7101fk7m9vhj2qh9m8u6b5vluagb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "819161511250-tuf0jgs3lfsnekjaomot3541v7ht5gf4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ayurvedaApp"
+              }
+            }
+          ]
         }
       }
     }

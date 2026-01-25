@@ -31,6 +31,13 @@ class _QuizQuestionScreenState extends State<QuizQuestionScreen> {
       _navigateToResults();
     }
   }
+  void _previousQuestion() {
+    if (_currentIndex > 0) {
+      setState(() {
+        _currentIndex--;
+      });
+    }
+  }
 
   void _navigateToResults() {
     String finalDosha = "";

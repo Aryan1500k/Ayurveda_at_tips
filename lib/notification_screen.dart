@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'models/app_notification.dart';
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -15,66 +16,53 @@ class NotificationScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(
-            onPressed: () {},
-            child: const Text("Clear All", style: TextStyle(color: Color(0xFF009460), fontSize: 12)),
+          ValueListenableBuilder<List<AppNotification>>(
+            valueListenable: notificationNotifier,
+            builder: (context, notifications, child) {
+              if (notifications.isEmpty) return const SizedBox();
+              return TextButton(
+                onPressed: () {
+                  // Logic to mark all as read or clear could go here
+                },
+                child: const Text("Clear All",
+                    style: TextStyle(color: Color(0xFF009460), fontSize: 12)),
+              );
+            },
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          const SizedBox(height: 10),
-          _buildSectionHeader("NEW"),
+      // --- REAL-TIME REACTIVE BODY ---
+      body: ValueListenableBuilder<List<AppNotification>>(
+        valueListenable: notificationNotifier,
+        builder: (context, notifications, child) {
+          if (notifications.isEmpty) {
+            return const Center(child: Text("No notifications yet"));
+          }
 
-          _buildNotificationItem(
-            "Meditation Reminder",
-            "It's time for your evening meditation to calm your Vata energy.",
-            "Just Now",
-            Icons.self_improvement,
-            isUnread: true,
-          ),
-          _buildNotificationItem(
-            "Order Shipped",
-            "Your Ayurvedic Herbal Tea set has been dispatched and is on its way!",
-            "1h ago",
-            Icons.local_shipping_outlined,
-            isUnread: true,
-          ),
+          // Dynamically split notifications from the notifier
+          final newNotifications = notifications.where((n) => !n.isRead).toList().reversed.toList();
+          final earlierNotifications = notifications.where((n) => n.isRead).toList().reversed.toList();
 
-          const SizedBox(height: 20),
-          _buildSectionHeader("EARLIER"),
-
-          _buildNotificationItem(
-            "Quiz Update",
-            "Your weekly Dosha analysis report is ready for review.",
-            "5h ago",
-            Icons.analytics_outlined,
-          ),
-          _buildNotificationItem(
-            "New Blog Post",
-            "5 Foods to avoid during the monsoon to prevent Kapha buildup.",
-            "Yesterday",
-            Icons.menu_book_outlined,
-          ),
-          _buildNotificationItem(
-            "Expert Consultation",
-            "Dr. Anjali has confirmed your appointment for tomorrow at 10:00 AM.",
-            "1 day ago",
-            Icons.event_available,
-          ),
-          _buildNotificationItem(
-            "Health Tip",
-            "Drinking warm water in the morning helps detoxify your digestive system.",
-            "2 days ago",
-            Icons.lightbulb_outline,
-          ),
-        ],
+          return ListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              if (newNotifications.isNotEmpty) ...[
+                _buildSectionHeader("NEW"),
+                ...newNotifications.map((n) => _buildNotificationItem(context, n)),
+              ],
+              if (earlierNotifications.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _buildSectionHeader("EARLIER"),
+                ...earlierNotifications.map((n) => _buildNotificationItem(context, n)),
+              ],
+              const SizedBox(height: 20),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // Helper for Section Titles (NEW / EARLIER)
   Widget _buildSectionHeader(String title) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -90,34 +78,42 @@ class NotificationScreen extends StatelessWidget {
     );
   }
 
-  // Improved Notification Item with "Unread" dot logic
-  Widget _buildNotificationItem(String title, String subtitle, String time, IconData icon, {bool isUnread = false}) {
+  Widget _buildNotificationItem(BuildContext context, AppNotification notification) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isUnread ? const Color(0xFFF0F9F4) : Colors.white, // Subtle green tint for unread
+        color: notification.isRead
+            ? (isDark ? Colors.grey[900] : Colors.white)
+            : (isDark ? const Color(0xFF1B4332) : const Color(0xFFF0F9F4)),
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade100),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: isUnread ? const Color(0xFF009460) : const Color(0xFFE8F3EE),
-          child: Icon(icon, color: isUnread ? Colors.white : const Color(0xFF009460), size: 20),
+          backgroundColor: !notification.isRead ? const Color(0xFF009460) : const Color(0xFFE8F3EE),
+          child: Icon(
+              Icons.notifications_active_outlined,
+              color: !notification.isRead ? Colors.white : const Color(0xFF009460),
+              size: 20
+          ),
         ),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Expanded(
               child: Text(
-                title,
+                notification.title,
                 style: TextStyle(
-                  fontWeight: isUnread ? FontWeight.bold : FontWeight.w600,
+                  fontWeight: !notification.isRead ? FontWeight.bold : FontWeight.w600,
                   fontSize: 15,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
             ),
-            if (isUnread)
+            if (!notification.isRead)
               Container(
                 width: 8,
                 height: 8,
@@ -131,14 +127,29 @@ class NotificationScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                subtitle,
-                style: TextStyle(fontSize: 13, color: Colors.grey.shade700, height: 1.4),
+                notification.body,
+                style: TextStyle(
+                    fontSize: 13,
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                    height: 1.4
+                ),
               ),
               const SizedBox(height: 5),
-              Text(time, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+              Text(
+                  "${notification.timestamp.hour}:${notification.timestamp.minute.toString().padLeft(2, '0')}",
+                  style: const TextStyle(fontSize: 11, color: Colors.grey)
+              ),
             ],
           ),
         ),
+        onTap: () {
+          // Optional: Mark as read when tapped
+          if (!notification.isRead) {
+            notification.isRead = true;
+            // Trigger a refresh of the notifier
+            notificationNotifier.value = List.from(notificationNotifier.value);
+          }
+        },
       ),
     );
   }
