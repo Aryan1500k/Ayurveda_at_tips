@@ -42,7 +42,7 @@ class HomeScreen extends StatelessWidget {
                     const Text(
                       "AYURVEDA",
                       style: TextStyle(
-                        fontFamily: 'Trajan Pro', // Using your custom font
+                        fontFamily: 'Trajan Pro',
                         fontSize: 28,
                         letterSpacing: 4,
                         color: Color(0xFF5A6344),
@@ -53,9 +53,14 @@ class HomeScreen extends StatelessWidget {
                     const Text("— Ancient Wisdom, Modern Wellness —",
                         style: TextStyle(fontSize: 10, color: Colors.grey)),
                     const SizedBox(height: 30),
-                    // Logo Placeholder (Replace with your logo asset)
-                    Image.asset('assets/logo.png', height: 80, errorBuilder: (c, e, s) =>
-                    const Icon(Icons.spa_outlined, size: 80, color: Color(0xFFB8860B))),
+
+                    // --- MAIN LOGO ICON ---
+                    // Updated to use your specific gold hands/lotus icon
+                    Image.asset(
+                      'assets/home_Image1.png',
+                      height: 100,
+                    ),
+
                     const SizedBox(height: 30),
                     Container(
                       padding: const EdgeInsets.all(20),
@@ -91,7 +96,7 @@ class HomeScreen extends StatelessWidget {
                               foregroundColor: Colors.white,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
-                            child: const Text("Discover your Dosha >", style: TextStyle(fontSize: 12)),
+                            child: const Text("Discover your Dosha >", style: TextStyle(fontSize: 11)),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -99,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                           child: OutlinedButton.icon(
                             onPressed: onTalkToExpert,
                             icon: const Icon(Icons.people_outline, size: 16),
-                            label: const Text("Talk to an expert", style: TextStyle(fontSize: 12)),
+                            label: const Text("Talk to an expert", style: TextStyle(fontSize: 11)),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: Colors.black,
                               side: const BorderSide(color: Colors.black12),
@@ -129,9 +134,10 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
 
-            _buildDoshaCard("Vata", "Air & Space", "Creative, quick-minded, adaptable", const Color(0xFF9CA68E)),
-            _buildDoshaCard("Pitta", "Fire & Water", "Focused, Ambitious & Determined", const Color(0xFFB4906C)),
-            _buildDoshaCard("Kapha", "Earth & Water", "Calm, Nurturing & Steady", const Color(0xFF7E8B6D)),
+            // --- DOSHA CARDS WITH IMAGES ---
+            _buildDoshaCard("Vata", "Air & Space", "Creative, quick-minded, adaptable", const Color(0xFF9CA68E), 'assets/vata_Image.png'),
+            _buildDoshaCard("Pitta", "Fire & Water", "Focused, Ambitious & Determined", const Color(0xFFB4906C), 'assets/pitta_Image.png'),
+            _buildDoshaCard("Kapha", "Earth & Water", "Calm, Nurturing & Steady", const Color(0xFF7E8B6D), 'assets/kapha_Image.png'),
 
             const SizedBox(height: 40),
             // --- HEALING THROUGH NATURE ---
@@ -167,6 +173,7 @@ class HomeScreen extends StatelessWidget {
               child: Wrap(
                 spacing: 15,
                 runSpacing: 15,
+                alignment: WrapAlignment.center,
                 children: [
                   _buildFeatureCard(Icons.wb_sunny_outlined, "Personalized Assessment", "A gentle 30-question journey to understand your unique constitution"),
                   _buildFeatureCard(Icons.eco_outlined, "Curated Recommendations", "Products and practices tailored specifically to your Dosha type"),
@@ -189,14 +196,15 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 100), // Bottom padding for navigation bar
+            const SizedBox(height: 100),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDoshaCard(String title, String subtitle, String desc, Color tagColor) {
+  // UPDATED: Now accepts an imagePath parameter
+  Widget _buildDoshaCard(String title, String subtitle, String desc, Color tagColor, String imagePath) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       padding: const EdgeInsets.all(16),
@@ -206,13 +214,29 @@ class HomeScreen extends StatelessWidget {
       ),
       child: Row(
         children: [
-          CircleAvatar(radius: 40, backgroundColor: Colors.white, child: Icon(Icons.circle_outlined, color: tagColor)),
+          // Circular Image Container
+          Container(
+            height: 80,
+            width: 80,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                imagePath,
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) => Icon(Icons.image, color: tagColor),
+              ),
+            ),
+          ),
           const SizedBox(width: 20),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(color: tagColor, borderRadius: BorderRadius.circular(10)),
@@ -230,7 +254,7 @@ class HomeScreen extends StatelessWidget {
 
   Widget _buildFeatureCard(IconData icon, String title, String desc) {
     return Container(
-      width: 170, // Fixed width for grid look
+      width: 170,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
       child: Column(

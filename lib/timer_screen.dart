@@ -1,8 +1,16 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'home_screen.dart';
 import 'activity_complete_screen.dart';
 
+// 1. Definition of the data model
+class WellnessBreak {
+  final String title;
+  final int durationMinutes;
+
+  WellnessBreak({required this.title, required this.durationMinutes});
+}
+
+// 2. Definition of the Screen
 class TimerScreen extends StatefulWidget {
   final WellnessBreak breakItem;
   const TimerScreen({super.key, required this.breakItem});
@@ -15,6 +23,7 @@ class _TimerScreenState extends State<TimerScreen> {
   late int _secondsRemaining;
   Timer? _timer;
   bool _isPaused = false;
+  final Color themeBrown = const Color(0xFF8B6B23); // Consistent brown theme
 
   @override
   void initState() {
@@ -23,21 +32,18 @@ class _TimerScreenState extends State<TimerScreen> {
     _startTimer();
   }
 
-  // LOGIC 1: Automatic Navigation when timer hits 0
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0 && !_isPaused) {
         setState(() => _secondsRemaining--);
       } else if (_secondsRemaining == 0) {
         _timer?.cancel();
-        _navigateToComplete(); // Trigger navigation automatically
+        _navigateToComplete();
       }
     });
   }
 
-  // Helper method for navigation
   void _navigateToComplete() {
-    // We use pushReplacement so the user can't "Go Back" to a finished timer
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -64,39 +70,50 @@ class _TimerScreenState extends State<TimerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F1E9),
+      backgroundColor: const Color(0xFFF8F9F4),
       body: Center(
         child: Container(
           padding: const EdgeInsets.all(30),
           margin: const EdgeInsets.symmetric(horizontal: 20),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              )
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(widget.breakItem.title,
-                  style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF1B4332))),
+                  style: TextStyle(
+                      fontFamily: 'Trajan Pro',
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: themeBrown
+                  )),
               const SizedBox(height: 8),
               const Text("Follow along and take your time", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 40),
               Text(_formatTime(_secondsRemaining),
-                  style: const TextStyle(fontSize: 80, fontWeight: FontWeight.w300, color: Color(0xFFC9A227))),
+                  style: TextStyle(fontSize: 70, fontWeight: FontWeight.w200, color: themeBrown)),
               const Text("Time remaining", style: TextStyle(color: Colors.grey)),
               const SizedBox(height: 40),
-
-              // LOGIC 2: Manual Navigation when "Finish Now" is clicked
               ElevatedButton(
-                onPressed: _navigateToComplete, // Go to completion UI immediately
+                onPressed: _navigateToComplete,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC9A227),
-                  minimumSize: const Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  backgroundColor: themeBrown,
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                  elevation: 0,
                 ),
                 child: Text(
                     _secondsRemaining == 0 ? "Activity Complete — Finish" : "Finish Now",
-                    style: const TextStyle(color: Color(0xFF1B4332), fontWeight: FontWeight.bold)),
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 20),
               Row(
@@ -104,12 +121,13 @@ class _TimerScreenState extends State<TimerScreen> {
                 children: [
                   TextButton(
                     onPressed: () => setState(() => _isPaused = !_isPaused),
-                    child: Text(_isPaused ? "Resume" : "Pause", style: const TextStyle(color: Colors.black)),
+                    child: Text(_isPaused ? "Resume" : "Pause",
+                        style: TextStyle(color: themeBrown, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 20),
                   TextButton(
                     onPressed: () => setState(() => _secondsRemaining = widget.breakItem.durationMinutes * 60),
-                    child: const Text("Reset", style: TextStyle(color: Colors.black)),
+                    child: const Text("Reset", style: TextStyle(color: Colors.grey)),
                   ),
                 ],
               )

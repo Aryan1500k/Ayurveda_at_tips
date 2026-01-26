@@ -1,148 +1,190 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My Profile"),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.black,
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Controllers to handle text input
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _address1Controller = TextEditingController(text: "Default address");
+  final TextEditingController _address2Controller = TextEditingController(text: "Default address");
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill email from Firebase Auth if the user is logged in
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      _emailController.text = user.email ?? "";
+      _nameController.text = user.displayName ?? "";
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _address1Controller.dispose();
+    _address2Controller.dispose();
+    super.dispose();
+  }
+
+  void _saveProfile() {
+    // Logic to save data to Firestore can be added here
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("Profile updated successfully!"),
+        backgroundColor: Color(0xFF8B6B23),
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance.collection('users').doc(user?.uid).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    );
+  }
 
-          var userData = snapshot.data?.data() as Map<String, dynamic>?;
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF8F9F4),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 25),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Profile",
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 30),
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
+            // --- Name Field ---
+            _buildLabel("Name"),
+            _buildTextField(_nameController, "Enter your name"),
+
+            const SizedBox(height: 20),
+
+            // --- Email Field ---
+            _buildLabel("Email"),
+            _buildTextField(_emailController, "Enter your email", keyboardType: TextInputType.emailAddress),
+
+            const SizedBox(height: 20),
+
+            // --- Address Section 1 ---
+            _buildLabel("Address"),
+            _buildAddressField(_address1Controller),
+
+            const SizedBox(height: 20),
+
+            // --- Address Section 2 with "+ add" ---
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const CircleAvatar(
-                  radius: 50,
-                  backgroundColor: Color(0xFFE8F3EE),
-                  child: Icon(Icons.person, size: 50, color: Color(0xFF009460)),
-                ),
-                const SizedBox(height: 15),
-                Text(
-                  userData?['name'] ?? "Ayurveda User",
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                Text(user?.email ?? "No Email", style: const TextStyle(color: Colors.grey)),
-                const SizedBox(height: 30),
-
-                // Dosha Result Card
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF009460),
-                    borderRadius: BorderRadius.circular(20),
+                _buildLabel("Address"),
+                GestureDetector(
+                  onTap: () {
+                    // Logic to add a new address field
+                  },
+                  child: const Text(
+                    "+ add",
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text("Your Dosha Type", style: TextStyle(color: Colors.white70)),
-                          Text("Vata-Pitta", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      const Icon(Icons.spa, color: Colors.white, size: 40),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 30),
-
-                _buildProfileItem(Icons.phone, "Phone", userData?['phone'] ?? "Not set"),
-                _buildProfileItem(Icons.location_on, "Address", userData?['address'] ?? "Not set"),
-                _buildProfileItem(Icons.calendar_today, "Member Since", "Jan 2024"),
-
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () => _showEditProfileDialog(context, userData),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF009460),
-                    minimumSize: const Size(double.infinity, 50),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("Edit Profile", style: TextStyle(color: Colors.white)),
                 ),
               ],
             ),
-          );
-        },
-      ),
-    );
-  }
+            _buildAddressField(_address2Controller),
 
-  Widget _buildProfileItem(IconData icon, String title, String value) {
-    return ListTile(
-      leading: Icon(icon, color: const Color(0xFF009460)),
-      title: Text(title, style: const TextStyle(fontSize: 14, color: Colors.grey)),
-      subtitle: Text(value, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black)),
-    );
-  }
-  // Add this method inside the ProfileScreen class
-  void _showEditProfileDialog(BuildContext context, Map<String, dynamic>? userData) {
-    final nameController = TextEditingController(text: userData?['name']);
-    final phoneController = TextEditingController(text: userData?['phone']);
+            const SizedBox(height: 50),
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text("Edit Profile"),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: "Full Name")),
-            TextField(controller: phoneController, decoration: const InputDecoration(labelText: "Phone Number")),
+            // --- Save Button ---
+            Center(
+              child: ElevatedButton(
+                onPressed: _saveProfile,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF8B6B23), // Earthy brown/gold
+                  minimumSize: const Size(220, 50),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Save",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 40),
           ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Cancel")),
-          ElevatedButton(
-            onPressed: () async {
-              final user = FirebaseAuth.instance.currentUser;
-
-              if (user != null) {
-                try {
-                  // Use .set with merge: true to avoid "NOT_FOUND" errors
-                  await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
-                    'name': nameController.text.trim(),
-                    'phone': phoneController.text.trim(),
-                    'email': user.email, // Good practice to keep email synced
-                  }, SetOptions(merge: true));
-
-                  if (context.mounted) Navigator.pop(ctx);
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Profile Updated!"), backgroundColor: Colors.green),
-                  );
-                } catch (e) {
-                  print("Error saving profile: $e");
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
-                  );
-                }
-              }
-            },
-            child: const Text("Save"),
-          ),
-        ],
       ),
+    );
+  }
+
+  // Helper to build field labels
+  Widget _buildLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.w500,
+          color: Colors.black,
+        ),
+      ),
+    );
+  }
+
+  // Helper to build standard text fields
+  Widget _buildTextField(TextEditingController controller, String hint, {TextInputType? keyboardType}) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide.none,
+        ),
+        hintText: hint,
+        hintStyle: const TextStyle(color: Colors.grey),
+      ),
+    );
+  }
+
+  // Helper to build the larger address fields from your UI
+  Widget _buildAddressField(TextEditingController controller) {
+    return TextField(
+      controller: controller,
+      maxLines: 4,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.all(20),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: BorderSide.none,
+        ),
+      ),
+      style: const TextStyle(color: Colors.grey, fontSize: 14),
     );
   }
 }

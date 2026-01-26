@@ -74,7 +74,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Ayurveda At Tips',
+      // title: 'Ayurveda At Tips',
       theme: ThemeData(
         brightness: Brightness.light,
         primaryColor: const Color(0xFF009460),
@@ -164,31 +164,75 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         title: const Text("Ayurveda At Tips"),
         elevation: 0,
       ),
-      drawer: Drawer(
+            // --- DRAWER HEADER ---
+        drawer: Drawer(
+        backgroundColor: const Color(0xFFF8F9F4), // Set sidebar background color
         child: Column(
           children: [
+            // --- UPDATED HEADER SECTION ---
             DrawerHeader(
-              decoration: const BoxDecoration(color: Color(0xFFE8F3EE)),
-              child: const Center(
-                child: Text("AYURVEDA At Tips",
-                    style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2, color: Color(0xFF009460))),
+              decoration: const BoxDecoration(
+                color: Color(0xFFFEFAF2), // Soft beige background
+              ),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // CHANGE: Using the brown spa icon instead of an image asset
+                    const Icon(
+                      Icons.spa_outlined,
+                      size: 40,
+                      color: Color(0xFF8B6B23),
+                    ),
+                    const SizedBox(height: 10),
+                    const Text(
+                      "AYURVEDA",
+                      style: TextStyle(
+                        fontFamily: 'Trajan Pro',
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 2,
+                        color: Color(0xFF8B6B23), // Theme brown color
+                        fontSize: 18,
+                      ),
+                    ),
+                    const Text(
+                      "AT TIPS",
+                      style: TextStyle(
+                        letterSpacing: 1,
+                        fontSize: 10,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
+
+            // --- DRAWER ITEMS (Maintained Navigation) ---
             _buildDrawerItem(Icons.home_outlined, "Home", tabIndex: 0),
-            _buildDrawerItem(Icons.person_outline, "Profile", tabIndex: 4), // Links to Profile index
+            _buildDrawerItem(Icons.person_outline, "Profile", tabIndex: 4),
             _buildDrawerItem(Icons.notifications_none, "Notifications", destinationPage: const NotificationScreen()),
+
             _buildDrawerItem(
-                Icons.settings_outlined,
-                "Settings",
-                destinationPage: SettingsScreen(
-                  onThemeChanged: widget.onThemeChanged,
-                  isDark: widget.isDarkMode,
-                )
+              Icons.settings_outlined,
+              "Settings",
+              destinationPage: SettingsScreen(
+                onThemeChanged: widget.onThemeChanged,
+                isDark: widget.isDarkMode,
+              ),
             ),
-            const Divider(),
+
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Divider(color: Colors.black12),
+            ),
+
             _buildDrawerItem(Icons.help_outline, "Help", destinationPage: const HelpScreen()),
             _buildDrawerItem(Icons.info_outline, "About", destinationPage: const AboutScreen()),
+
             const Spacer(),
+
+            // --- LOGOUT ITEM ---
             _buildDrawerItem(Icons.logout, "Logout", isLogout: true),
             const SizedBox(height: 20),
           ],
@@ -214,20 +258,29 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         ],
       ),
     );
-  }
+    }
 
   Widget _buildDrawerItem(IconData icon, String title, {int? tabIndex, Widget? destinationPage, bool isLogout = false}) {
+    // Define your theme color here
+    const Color themeBrown = Color(0xFF8B6B23);
     bool isNotification = title == "Notifications";
 
     return ListTile(
-      leading: Icon(icon, color: isLogout ? Colors.red : const Color(0xFF009460)),
+      leading: Icon(
+        icon,
+        // CHANGE: This line ensures icons are brown, except for Logout
+        color: isLogout ? Colors.red : themeBrown,
+      ),
       title: Row(
         children: [
-          Text(title,
-              style: TextStyle(
-                color: isLogout ? Colors.red : Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.w500,
-              )),
+          Text(
+            title,
+            style: TextStyle(
+              color: isLogout ? Colors.red : Colors.black87,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          // --- KEPT NOTIFICATION BADGE LOGIC ---
           if (isNotification)
             ValueListenableBuilder<List<AppNotification>>(
               valueListenable: notificationNotifier,
@@ -246,7 +299,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         ],
       ),
       onTap: () {
-        Navigator.pop(context);
+        // --- KEPT NAVIGATION LOGIC ---
+        Navigator.pop(context); // Close the drawer
         if (isLogout) {
           _showLogoutDialog();
         } else if (tabIndex != null) {
