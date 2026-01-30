@@ -1,9 +1,37 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'cart_screen.dart';
-import 'models/product_item.dart'; // Ensure this model exists with name, price, and quantity
+import 'models/product_item.dart';
+
+// --- UPDATED DATA MODEL FOR REAL-LIFE APP ---
+class Product {
+  final String name;
+  final double price;
+  final String description;
+  final String category;
+  final List<String> worksFor;
+
+  Product({
+    required this.name,
+    required this.price,
+    required this.description,
+    required this.category,
+    required this.worksFor,
+  });
+
+  factory Product.fromFirestore(Map<String, dynamic> data) {
+    return Product(
+      name: data['name']?.toString() ?? 'Unnamed Product',
+      price: (data['price'] ?? 0).toDouble(),
+      description: data['description']?.toString() ?? 'No description available.',
+      category: data['category']?.toString() ?? 'General',
+      worksFor: data['worksFor'] is List ? List<String>.from(data['worksFor']) : [],
+    );
+  }
+}
 
 class ProductScreen extends StatefulWidget {
-  final VoidCallback onTalkToExpert; // Callback to switch to Expert Tab (Index 3)
+  final VoidCallback onTalkToExpert;
 
   const ProductScreen({super.key, required this.onTalkToExpert});
 
@@ -13,23 +41,24 @@ class ProductScreen extends StatefulWidget {
 
 class _ProductScreenState extends State<ProductScreen> {
   String _selectedCategory = "Daily Care";
-  List<ProductItem> _cartItems = []; // List to track items for the Cart Screen
+  final List<ProductItem> _cartItems = [];
+  final Color themeBrown = const Color(0xFF8B6B23);
 
-  // Adds product to cart or increments quantity if already present
-  void _addToCart(String name, int price) {
+  void _addToCart(Product product) {
     setState(() {
-      int index = _cartItems.indexWhere((item) => item.name == name);
+      int index = _cartItems.indexWhere((item) => item.name == product.name);
       if (index != -1) {
         _cartItems[index].quantity++;
       } else {
-        _cartItems.add(ProductItem(name: name, price: price));
+        _cartItems.add(ProductItem(name: product.name, price: product.price.toInt()));
       }
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text("$name added to cart"),
+        content: Text("${product.name} added to cart"),
         duration: const Duration(seconds: 1),
         behavior: SnackBarBehavior.floating,
+        backgroundColor: themeBrown,
       ),
     );
   }
@@ -39,181 +68,201 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9F4),
       appBar: AppBar(
-        title: const Text("Products", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
+        title: const Text("Marketplace",
+            style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
         elevation: 0,
-        actions: [
-          // Shopping Cart with Real-time Badge
-          IconButton(
-            icon: Badge(
-              label: Text("${_cartItems.length}"),
-              isLabelVisible: _cartItems.isNotEmpty,
-              child: const Icon(Icons.shopping_cart_outlined, color: Colors.black),
-            ),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CartScreen(cartItems: _cartItems)),
-            ).then((_) => setState(() {})), // Refresh state when returning from Cart
-          ),
-          const SizedBox(width: 15),
-        ],
+        centerTitle: false,
+        // --- FIXED: ONE WORKING CART ICON WITH ACTION ---
+        
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            const Text("Curated for\nYour Balance",
-                textAlign: TextAlign.center,
-                style: TextStyle(fontFamily: 'Trajan Pro', fontSize: 26, height: 1.2)),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              child: Text("Products specially selected to support your unique constitution and wellness goals.",
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 13)),
-            ),
+      body: Column(
+        children: [
+          const SizedBox(height: 10),
+          const Text("Curated for Your Balance",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontFamily: 'Playfair Display', fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
 
-            // --- Horizontal Category Selector ---
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Row(
-                children: ["Daily Care", "Digestion", "Stress & Sleep", "Hair & Skin"].map((cat) =>
-                    GestureDetector(
-                      onTap: () => setState(() => _selectedCategory = cat),
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: _selectedCategory == cat ? const Color(0xFF8B6B23) : Colors.white,
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(color: _selectedCategory == cat ? Colors.transparent : Colors.black12),
-                        ),
-                        child: Text(cat,
-                            style: TextStyle(
-                                color: _selectedCategory == cat ? Colors.white : Colors.black,
-                                fontWeight: FontWeight.w500
-                            )
-                        ),
+          // --- HORIZONTAL CATEGORY SELECTOR ---
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: ["Daily Care", "Digestion", "Stress & Sleep", "Hair & Skin"].map((cat) =>
+                  GestureDetector(
+                    onTap: () => setState(() => _selectedCategory = cat),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: _selectedCategory == cat ? themeBrown : Colors.white,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5)],
                       ),
-                    )
-                ).toList(),
-              ),
+                      child: Text(cat,
+                          style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: _selectedCategory == cat ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.bold)),
+                    ),
+                  )
+              ).toList(),
             ),
+          ),
+          const SizedBox(height: 20),
 
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(_selectedCategory, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-              ),
+          // --- DYNAMIC PRODUCT LIST ---
+          Expanded(
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('products')
+                  .where('category', isEqualTo: _selectedCategory)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) return const Center(child: Text("Error loading products"));
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator(color: themeBrown));
+                }
+                final products = snapshot.data!.docs.map((doc) {
+                  return Product.fromFirestore(doc.data() as Map<String, dynamic>);
+                }).toList();
+                if (products.isEmpty) {
+                  return const Center(child: Text("No products found in this category."));
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) => _buildProductCard(products[index]),
+                );
+              },
             ),
-
-            // --- Dynamic Product List ---
-            _buildProductList(),
-
-            // --- Bottom Navigation Section ---
-            const SizedBox(height: 40),
-            const Icon(Icons.people_outline, color: Colors.grey, size: 30),
-            const SizedBox(height: 10),
-            const Text("Not Sure Where to Start?", style: TextStyle(fontFamily: 'Trajan Pro', fontSize: 20)),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-              child: Text("Speak with a certified Ayurvedic practitioner for personalized guidance.",
-                  textAlign: TextAlign.center, style: TextStyle(color: Colors.grey, fontSize: 13)),
-            ),
-            ElevatedButton(
-              onPressed: widget.onTalkToExpert, // Switches to Expert Tab
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF8B6B23),
-                padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-              ),
-              child: const Text("Talk to an Expert", style: TextStyle(color: Colors.white)),
-            ),
-            const SizedBox(height: 100),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  // Swaps content based on selected category
-  Widget _buildProductList() {
-    if (_selectedCategory == "Daily Care") {
-      return Column(children: [
-        _productCard("Triphala Digestive Complex", 29, "A time-honored blend for gentle, daily digestive support.", ["Supports digestion", "Natural cleansing"], [Colors.lightBlue, Colors.orange, Colors.green]),
-        _productCard("Ashwagandha Calm", 35, "Adaptogenic herb to help your body adapt to stress.", ["Reduces stress", "Supports energy"], [Colors.lightBlue, Colors.green]),
-      ]);
-    } else if (_selectedCategory == "Digestion") {
-      return Column(children: [
-        _productCard("Digestive Spice Blend", 24, "A warming blend to kindle your digestive fire.", ["Enhances appetite", "Reduces bloating"], [Colors.lightBlue, Colors.green]),
-      ]);
-    } else if (_selectedCategory == "Stress & Sleep") {
-      return Column(children: [
-        _productCard("Brahmi Mind Clarity", 32, "Traditional herb for mental clarity and focus.", ["Enhances memory", "Reduces anxiety"], [Colors.lightBlue, Colors.orange]),
-        _productCard("Deep Sleep Formula", 38, "Calming blend for restorative sleep.", ["Promotes relaxation", "Supports deep sleep"], [Colors.lightBlue, Colors.orange, Colors.green]),
-      ]);
-    } else { // Hair & Skin
-      return Column(children: [
-        _productCard("Nourishing Hair Oil", 28, "Brahmi and Amla blend for lustrous hair.", ["Strengthens roots", "Adds shine"], [Colors.lightBlue, Colors.orange, Colors.green]),
-        _productCard("Radiance Face Serum", 45, "Kumkumadi serum for glowing skin.", ["Evens skin tone", "Nourishes deeply"], [Colors.lightBlue, Colors.orange, Colors.green]),
-      ]);
-    }
-  }
+  Widget _buildProductCard(Product product) {
+    const Color cardBeige = Color(0xFFFEFAF2);
 
-  Widget _productCard(String name, int price, String desc, List<String> bulletPoints, List<Color> doshaColors) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(color: const Color(0xFFFEFAF2), borderRadius: BorderRadius.circular(30)),
+      decoration: BoxDecoration(
+        color: cardBeige,
+        borderRadius: BorderRadius.circular(30),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(name, style: const TextStyle(fontFamily: 'Trajan Pro', fontSize: 22)),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: Text(desc, style: const TextStyle(color: Colors.black54, fontSize: 13, height: 1.4))),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: bulletPoints.map((point) => Row(children: [
-                  const Icon(Icons.check, size: 14, color: Color(0xFF8B6B23)),
-                  const SizedBox(width: 5),
-                  Text(point, style: const TextStyle(fontSize: 11, color: Colors.black54))
-                ])).toList(),
-              )
-            ],
+          Text(
+            product.name,
+            style: const TextStyle(
+              fontFamily: 'Playfair Display',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const SizedBox(height: 15),
-          Row(
-            children: [
-              const Text("Works for: ", style: TextStyle(fontSize: 12, fontStyle: FontStyle.italic)),
-              ...doshaColors.map((color) => Padding(
-                padding: const EdgeInsets.only(right: 5),
-                child: Icon(Icons.circle, size: 12, color: color.withOpacity(0.5)),
-              )).toList(),
-            ],
+          const SizedBox(height: 8),
+          Text(
+            product.description,
+            style: const TextStyle(color: Colors.black54, fontSize: 13, height: 1.5),
           ),
+          const SizedBox(height: 12),
+
+          if (product.worksFor.isNotEmpty) _buildWorksForPill(product),
+
+          const SizedBox(height: 12),
+          _buildBulletPoints(),
+
+          const SizedBox(height: 25),
+          _buildPriceRow(product),
+
           const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("\$$price", style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              ElevatedButton.icon(
-                onPressed: () => _addToCart(name, price),
-                icon: const Icon(Icons.shopping_cart_outlined, size: 18, color: Colors.white),
-                label: const Text("Add to cart", style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF8B6B23),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
-                ),
-              )
-            ],
-          )
+          const Divider(color: Colors.black12, thickness: 1), // Divider moved to bottom
         ],
       ),
+    );
+  }
+
+  Widget _buildWorksForPill(Product product) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text("Works for: ",
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+          const SizedBox(width: 8),
+          ...product.worksFor.map((dosha) => _buildDoshaIcon(dosha)).toList(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPriceRow(Product product) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "₹${product.price.toStringAsFixed(0)}",
+          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+        ElevatedButton.icon(
+          onPressed: () => _addToCart(product),
+          icon: const Icon(Icons.shopping_cart_outlined, size: 18, color: Colors.white),
+          label: const Text("Add to cart",
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: themeBrown,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDoshaIcon(String dosha) {
+    IconData icon;
+    Color color;
+    if (dosha == 'Vata') {
+      icon = Icons.air;
+      color = const Color(0xFFB3E5FC);
+    } else if (dosha == 'Pitta') {
+      icon = Icons.local_fire_department;
+      color = const Color(0xFFFFCC80);
+    } else {
+      icon = Icons.water_drop;
+      color = const Color(0xFFA5D6A7);
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(right: 6),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+      child: Icon(icon, size: 12, color: Colors.white),
+    );
+  }
+
+  Widget _buildBulletPoints() {
+    List<String> points = ["Supports healthy digestion", "Natural cleansing", "Promotes balance"];
+    return Wrap(
+      spacing: 15,
+      runSpacing: 8,
+      children: points.map((p) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check, size: 14, color: themeBrown),
+          const SizedBox(width: 5),
+          Text(p, style: const TextStyle(fontSize: 11, color: Colors.black54)),
+        ],
+      )).toList(),
     );
   }
 }

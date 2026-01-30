@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// Note: Ensure you have 'google_sign_in' in your pubspec.yaml
-// import 'package:google_sign_in/google_sign_in.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -19,33 +19,74 @@ class _AuthScreenState extends State<AuthScreen> {
 
   // Existing Email/Password Logic
   Future<void> _submit() async {
-    setState(() => _isLoading = true);
+    // Validate basic input first
+    if (_emailController.text.trim().isEmpty || _passwordController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter both email and password")),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true); // Start the spinner
+
     try {
       if (_isLogin) {
         await FirebaseAuth.instance.signInWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
+        // If success, main.dart StreamBuilder handles navigation automatically
       } else {
         await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        await FirebaseAuth.instance.currentUser?.updateDisplayName(_nameController.text);
       }
     } on FirebaseAuthException catch (e) {
-      _showError(e.message ?? "Authentication failed");
+      // Show the actual error so you know why it's failing
+      String errorMsg = e.message ?? "Authentication failed";
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMsg), backgroundColor: Colors.red),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("An unexpected error occurred: $e")),
+      );
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      // THIS IS THE FIX: This line always runs, stopping the infinite spinner
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   // Google Sign-In Logic Placeholder
   Future<void> _signInWithGoogle() async {
-    // You would typically implement the GoogleSignIn() flow here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Connecting to Google..."), backgroundColor: Color(0xFF8B6B23)),
-    );
+    setState(() => _isLoading = true);
+    try {
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+
+      // Reset any existing session first
+      await googleSignIn.signOut();
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(credential);
+    } catch (e) {
+      setState(() => _isLoading = false);
+      _showError("Google Login Error: $e");
+    }
   }
 
   void _showError(String message) {
