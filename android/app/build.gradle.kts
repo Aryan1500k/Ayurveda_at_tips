@@ -1,3 +1,24 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+// 1. LOAD LOCAL PROPERTIES (Fixes the Unresolved Reference error)
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+// 2. LOAD KEYSTORE PROPERTIES (For Signing)
+val keystoreProperties = Properties()
+val keystorePropertiesFile = rootProject.file("key.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
+// 3. EXTRACT VERSION STRINGS
+val flutterVersionCode = localProperties.getProperty("flutter.versionCode") ?: "1"
+val flutterVersionName = localProperties.getProperty("flutter.versionName") ?: "1.0"
+
 plugins {
     id("com.android.application")
     id("com.google.gms.google-services")
@@ -6,36 +27,51 @@ plugins {
 }
 
 android {
-    namespace = "com.example.ayurveda_app"
+    namespace = "com.ayurvedaattips.app"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
 
     compileOptions {
-
-        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        // Match the Java 8 target
         jvmTarget = "1.8"
     }
 
     defaultConfig {
-        applicationId = "com.example.ayurveda_app"
+        applicationId = "com.ayurvedaattips.app"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
 
-        // Add this to handle the large number of Firebase methods
+        // Using the variables defined above
+        versionCode = flutterVersionCode.toInt()
+        versionName = flutterVersionName
+
         multiDexEnabled = true
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
+        }
+    }
+
     buildTypes {
-        release {
-            signingConfig = signingConfigs.getByName("debug")
+        getByName("release") {
+            // Updated syntax for Kotlin DSL
+            isMinifyEnabled = false
+            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("release")
+
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
@@ -44,7 +80,6 @@ flutter {
     source = "../.."
 }
 
-// Add this block at the bottom of the file
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
 }

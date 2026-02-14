@@ -68,13 +68,37 @@ class _ProductScreenState extends State<ProductScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9F4),
       appBar: AppBar(
-        title: const Text("Marketplace",
-            style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Marketplace",
+          style: TextStyle(fontFamily: 'Playfair Display', fontWeight: FontWeight.bold),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
-        // --- FIXED: ONE WORKING CART ICON WITH ACTION ---
-        
+        // --- ADD THIS ACTIONS BLOCK TO MAKE THE ICON VISIBLE ---
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20),
+            child: GestureDetector(
+              onTap: () {
+                // Navigates to the Cart Screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CartScreen(cartItems: _cartItems)),
+                ).then((_) => setState(() {})); // Refreshes the badge count when you return
+              },
+              child: Badge(
+                label: Text("${_cartItems.length}"),
+                isLabelVisible: _cartItems.isNotEmpty,
+                child: const Icon(
+                  Icons.shopping_cart_outlined,
+                  color: Colors.black,
+                  size: 28,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Column(
         children: [

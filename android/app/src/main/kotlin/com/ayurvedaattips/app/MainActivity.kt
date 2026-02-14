@@ -1,5 +1,7 @@
-package com.example.ayurveda_app
+package com.ayurvedaattips.app
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity : FlutterActivity()
+
+

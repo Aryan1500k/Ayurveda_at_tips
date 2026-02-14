@@ -7,6 +7,42 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:819161511250:android:8c652dede3e7e53a52f68b",
+        "android_client_info": {
+          "package_name": "com.ayurvedaattips.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "819161511250-3k9d7101fk7m9vhj2qh9m8u6b5vluagb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHiXL10S3NG8yKAtqjLci4jK2tXQ7e8QQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "819161511250-3k9d7101fk7m9vhj2qh9m8u6b5vluagb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "819161511250-tuf0jgs3lfsnekjaomot3541v7ht5gf4.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.ayurvedaApp"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:819161511250:android:2ed325a090a5194652f68b",
         "android_client_info": {
           "package_name": "com.example.ayurveda_app"
@@ -28,7 +64,7 @@
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDmQeMos5BOE6-gTnuSSJkd0ZSWaLsUNpo"
+          "current_key": "AIzaSyDHiXL10S3NG8yKAtqjLci4jK2tXQ7e8QQ"
         }
       ],
       "services": {

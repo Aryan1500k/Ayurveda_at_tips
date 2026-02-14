@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+// --- ADD THIS IMPORT ---
+import 'order_history_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -9,7 +11,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  // Controllers to handle text input
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _address1Controller = TextEditingController(text: "Default address");
@@ -18,7 +19,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill email from Firebase Auth if the user is logged in
     User? user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       _emailController.text = user.email ?? "";
@@ -36,7 +36,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _saveProfile() {
-    // Logic to save data to Firestore can be added here
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text("Profile updated successfully!"),
@@ -69,25 +68,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             const SizedBox(height: 30),
 
-            // --- Name Field ---
+            // --- Order History Navigation Section ---
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: ListTile(
+                leading: const Icon(Icons.shopping_bag_outlined, color: Color(0xFF8B6B23)),
+                title: const Text("Order History", style: TextStyle(fontWeight: FontWeight.w500)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  // This pushes the new screen onto the stack
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const OrderHistoryScreen()),
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 30),
+
             _buildLabel("Name"),
             _buildTextField(_nameController, "Enter your name"),
 
             const SizedBox(height: 20),
 
-            // --- Email Field ---
             _buildLabel("Email"),
             _buildTextField(_emailController, "Enter your email", keyboardType: TextInputType.emailAddress),
 
             const SizedBox(height: 20),
 
-            // --- Address Section 1 ---
             _buildLabel("Address"),
             _buildAddressField(_address1Controller),
 
             const SizedBox(height: 20),
 
-            // --- Address Section 2 with "+ add" ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -107,12 +124,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             const SizedBox(height: 50),
 
-            // --- Save Button ---
             Center(
               child: ElevatedButton(
                 onPressed: _saveProfile,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF8B6B23), // Earthy brown/gold
+                  backgroundColor: const Color(0xFF8B6B23),
                   minimumSize: const Size(220, 50),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25),
@@ -136,7 +152,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper to build field labels
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
@@ -151,7 +166,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper to build standard text fields
   Widget _buildTextField(TextEditingController controller, String hint, {TextInputType? keyboardType}) {
     return TextField(
       controller: controller,
@@ -170,7 +184,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Helper to build the larger address fields from your UI
   Widget _buildAddressField(TextEditingController controller) {
     return TextField(
       controller: controller,

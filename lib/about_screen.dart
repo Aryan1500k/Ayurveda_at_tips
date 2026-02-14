@@ -19,7 +19,7 @@ class AboutScreen extends StatelessWidget {
           children: [
             const Spacer(),
             // App Logo
-            Image.asset('assets/logo.png', height: 60),
+            Image.asset('assets/icon.png', height: 60),
             const SizedBox(height: 20),
             const Text(
               "Ayurveda At Tips",

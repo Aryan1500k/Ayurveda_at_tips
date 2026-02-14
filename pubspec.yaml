@@ -38,6 +38,8 @@ dependencies:
   url_launcher: ^6.3.2
   flutter_svg: ^2.2.3
   flutter_native_splash: ^2.4.7
+  intl: ^0.20.2
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -55,6 +57,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -69,7 +72,8 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-      - assets/logo.png
+      - assets/icon.png
+      - assets/logo.jpeg
       - assets/home_Image1.png
       - assets/vata_Image.png
       - assets/kapha_Image.png
@@ -104,10 +108,28 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 flutter_native_splash:
     color: "xFF009460" # Or your Ayurveda theme green
-    image: assets/logo.png # Path to your logo
+    image: assets/icon.png # Path to your logo
     android_gravity: center
     ios_content_mode: center
     android_12:
-      image: assets/logo.png
+      image: assets/icon.png
       color: "0xFF009460"
     web: true # Set to true if you want it on the web app too
+flutter_launcher_icons:
+  android: "launcher_icon" # Set to true or specify a name for the icon
+  ios: true              # Set to true to generate icons for iOS
+  image_path: "assets/icon.png"
+  # Optional: Add adaptive icons for Android 8.0 (Oreo) and later
+#  adaptive_icon_background: "#ffffff"
+#  adaptive_icon_foreground: "assets/icon/foreground.png"
+  # Optional: Configure for other platforms
+  web:
+    generate: true
+    image_path: "assets/icon.png"
+  windows:
+    generate: true
+    image_path: "assets/icon.png"
+  macos:
+    generate: true
+    image_path: "assets/icon.png"
+

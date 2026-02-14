@@ -73,6 +73,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '819161511250',
     projectId: 'ayurvedaapp-91230',
     storageBucket: 'ayurvedaapp-91230.firebasestorage.app',
+    androidClientId: '819161511250-3h6ujit71bpdbsfkdgkqtgtn3ut5eurn.apps.googleusercontent.com',
+    iosClientId: '819161511250-tuf0jgs3lfsnekjaomot3541v7ht5gf4.apps.googleusercontent.com',
     iosBundleId: 'com.example.ayurvedaApp',
   );
 
@@ -85,4 +87,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'ayurvedaapp-91230.firebasestorage.app',
     measurementId: 'G-68ELSW5RPF',
   );
+
 }
